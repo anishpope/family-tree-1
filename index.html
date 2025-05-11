@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ancestry Tree App</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .tree { margin-top: 20px; }
+    .person { margin: 10px; padding: 10px; border: 1px solid #333; display: inline-block; cursor: pointer; }
+    .selected { background-color: lightblue; }
+  </style>
+</head>
+<body>
+  <h1>Ancestry Tree App</h1>
+
+  <div>
+    <h3>Add Family Member</h3>
+    <input type="text" id="name" placeholder="Name" />
+    <input type="text" id="parent" placeholder="Parent's Name (optional)" />
+    <button onclick="addMember()">Add</button>
+  </div>
+
+  <div class="tree" id="tree"></div>
+
+  <h3>Relationship Finder</h3>
+  <p>Select two people to see their relationship.</p>
+  <p id="relationship"></p>
+
+  <script>
+    let family = [];
+    let selected = [];
+
+    function addMember() {
+      const name = document.getElementById('name').value.trim();
+      const parent = document.getElementById('parent').value.trim();
+      if (!name) return;
+      family.push({ name, parent });
+      document.getElementById('name').value = '';
+      document.getElementById('parent').value = '';
+      renderTree();
+    }
+
+    function renderTree() {
+      const tree = document.getElementById('tree');
+      tree.innerHTML = '';
+      family.forEach(person => {
+        const div = document.createElement('div');
+        div.className = 'person';
+        div.innerText = person.name;
+        div.onclick = () => selectPerson(person.name, div);
+        tree.appendChild(div);
+      });
+    }
+
+    function selectPerson(name, element) {
+      if (selected.includes(name)) {
+        selected = selected.filter(n => n !== name);
+        element.classList.remove('selected');
+      } else if (selected.length < 2) {
+        selected.push(name);
+        element.classList.add('selected');
+        if (selected.length === 2) findRelationship();
+      }
+    }
+
+    function findRelationship() {
+      const [a, b] = selected;
+      const findPerson = (name) => family.find(p => p.name === name);
+      const aParent = findPerson(a)?.parent;
+      const bParent = findPerson(b)?.parent;
+      let relation = 'No direct relationship found.';
+
+      if (a === b) {
+        relation = 'Same person.';
+      } else if (aParent && aParent === bParent) {
+        relation = 'Siblings.';
+      } else if (a === findPerson(b)?.parent) {
+        relation = `${a} is parent of ${b}.`;
+      } else if (b === findPerson(a)?.parent) {
+        relation = `${b} is parent of ${a}.`;
+      }
+
+      document.getElementById('relationship').innerText = relation;
+      selected = [];
+      renderTree();
+    }
+  </script>
+</body>
+</html>
